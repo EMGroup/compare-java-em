@@ -1,0 +1,257 @@
+<html>
+<head>
+	<link rel="stylesheet" type="text/css" href="node_modules/@construit/highlighter/css/construit-highlighter.css">
+	<link rel="stylesheet" type="text/css" href="node_modules/@construit/scriptbox/css/interpreter.css">
+	<link rel="stylesheet" type="text/css" href="node_modules/@construit/scriptbox/css/gutter.css">
+	<link href="https://fonts.googleapis.com/css?family=Roboto+Mono:400" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=Roboto:300" rel="stylesheet">
+	<script src="node_modules/@construit/scriptbox/construit-scriptbox.min.js"></script>
+	<script src="node_modules/@construit/runtime/construit-runtime.min.js"></script>
+	<script src="node_modules/java-parser/javaparser7.js"></script>
+	<script src="https://use.fontawesome.com/f172de12fc.js"></script>
+
+	<style>
+		body {
+			display: flex;
+			font-size: 20px;
+			font-family: "Roboto", Helvetica, arial;
+			flex-direction: column;
+			margin: 0;
+		}
+
+		#menu {
+			background: #eee;
+			padding: 15px;
+			display: flex;
+			color: #666;
+		}
+
+		#emmenu {
+			width: 50%;
+			text-align: center;
+		}
+
+		#emmenu > select {
+			margin-top: 5px;
+		}
+
+		#jsmenu {
+			width: 50%;
+			text-align: center;
+		}
+
+		#jsmenu > select {
+			margin-top: 5px;
+		}
+
+		#inputs {
+			display: flex;
+			background: #777;
+			overflow: hidden;
+		}
+
+		#emtextin {
+			width: 50%;
+			margin: 20px;
+			font-size: 20px;
+			box-sizing: border-box;
+			overflow: auto;
+			box-shadow: 0 0 10px black;
+		}
+
+		#jstextin {
+			width: 50%;
+			margin: 20px;
+			font-size: 20px;
+			box-sizing: border-box;
+			overflow: auto;
+			box-shadow: 0 0 10px black;
+		}
+
+	</style>
+</head>
+<body>
+	<script>
+		function ajax(options) {
+			var xhr = new XMLHttpRequest();
+			//xhr.withCredentials = true;
+			xhr.open(options.type.toUpperCase(), options.url);
+			//xhr.setRequestHeader('Content-Type', 'application/json');
+			xhr.onload = function() {
+				if (xhr.status === 200 || xhr.status == 0) {
+					var data;
+					if (xhr.responseText.charAt(0) == "{" || xhr.responseText.charAt(0) == "[") data = JSON.parse(xhr.responseText);
+					else data = xhr.responseText;
+					options.success(data);
+				} else {
+					options.error(xhr, xhr.status, xhr.responseText);
+				}
+			};
+			xhr.send((options.data) ? JSON.stringify(options.data) : undefined);
+		}
+
+		function javaparser(src) {
+			var errors = [];
+			var ast;
+
+			// Filter out markdown comments
+			src = src.split("\n").map(function(x) {
+				if (x.startsWith("#")) return "";
+				else return x;
+			}).join('\n');
+
+			try {
+				//console.log(src);
+				ast = {} //JavaParser.parse(src);
+				//console.log(ast);
+			} catch(e) {
+				//console.log(e);
+				errors.push(e);
+				e.line = e.location.start.line;
+				e.messageText = function() { return e.message; };
+			}
+			return {
+				ast: ast,
+				errors: errors,
+				hasErrors: function() { return (errors.length > 0); },
+				getError: function() { return errors[0]; },
+				source: src,
+				statements: [],
+				getStatementByLine: function() {}
+			}
+		}
+		function jstranslator(ast) {
+			//eval(ast.source);
+		}
+		window.onload = function() {
+			var input = document.getElementById("emtextin");
+			var inputjs = document.getElementById("jstextin");
+
+			rt = new Construit.runtime.RunTime();
+			var embox = new Construit.ScriptBox(input, rt);
+
+			var jsbox = new Construit.ScriptBox(inputjs, rt, {
+				parser: {parse: javaparser},
+				translator: { eval: jstranslator },
+				storageNames: {
+					"int": "int",
+					"double": "double",
+					"float": "float",
+					"char": "char",
+					"byte": "byte",
+					"boolean": "boolean",
+					"short": "short",
+					"void": "void",
+					"long": "long"
+				},
+				functionNames: {},
+				keywords: {
+					"int": "int",
+					"double": "double",
+					"float": "float",
+					"char": "char",
+					"byte": "byte",
+					"boolean": "boolean",
+					"short": "short",
+					"void": "void",
+					"long": "long",
+					"new": "new",
+					"abstract": "abstract",
+					"assert": "assert",
+					"break": "break",
+					"case": "case",
+					"try": "try",
+					"do": "do",
+					"else": "else",
+					"enum": "enum",
+					"this": "this",
+					"double": "double",
+					"break": "break",
+					"catch": "catch",
+					"class": "class",
+					"const": "const",
+					"super": "super",
+					"throw": "throw",
+					"throws": "throws",
+					"while": "while",
+					"import": "import",
+					"public": "public",
+					"return": "return",
+					"static": "static",
+					"switch": "switch",
+					"default": "default",
+					"extends": "extends",
+					"final": "final",
+					"goto": "goto",
+					"native": "native",
+					"finally": "finally",
+					"package": "package",
+					"private": "private",
+					"continue": "continue",
+					"debugger": "debugger",
+					"function": "function",
+					"interface": "interface",
+					"protected": "protected",
+					"prototype": "prototype",
+					"implements": "implements",
+					"instanceof": "instanceof",
+					"synchronized": "synchronized",
+					"transient": "transient",
+					"volatile": "volatile"
+				}
+			});
+
+			var jsoptions = document.getElementById("jsoptions");
+			jsoptions.onchange = function(e) {
+				ajax({
+					url: jsoptions.value,
+					type: "get",
+					success: function(data){
+						jsbox.intextarea.value = data;
+						jsbox.updateEntireHighlight();
+					},
+					error: function(a){
+						
+					}
+				});
+			}
+			jsoptions.onchange();
+
+			var emoptions = document.getElementById("emoptions");
+			emoptions.onchange = function(e) {
+				ajax({
+					url: emoptions.value,
+					type: "get",
+					success: function(data){
+						embox.intextarea.value = data;
+						embox.updateEntireHighlight();
+					},
+					error: function(a){
+						
+					}
+				});
+			}
+			emoptions.onchange();
+		}
+	</script>
+
+	<div id="menu">
+		<div id="emmenu"><b>ConstruitScript</b><br>
+			<select id="emoptions">
+			<option value="scripts/house/step1.js-e">House - Initial Script</option>
+			<option value="scripts/house/step1a.js-e">House - Monolithic Definition</option>
+			</select>
+		</div>
+		<div id="jsmenu"><b>Java</b><br>
+			<select id="jsoptions">
+			<option value="scripts/house/step1.java">House - Naive Class</option>
+			</select>
+		</div>
+	</div>
+	<div id="inputs">
+		<div id="emtextin"></div>
+		<div id="jstextin"></div>
+	</div>
+</body>
+</html>
+
