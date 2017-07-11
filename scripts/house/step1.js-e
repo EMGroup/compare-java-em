@@ -12,7 +12,7 @@ roofHeight is houseWidth * 0.5;
 ### Internals
 roofX is houseX;
 roofY is houseY + roofHeight;
-roof is Triangle(roofX, roofY, roofHeight, houseWidth);
+roof is Triangle(roofX, houseY, roofHeight, houseWidth);
 blockHeight is floorHeight * floors;
 houseBlock is Rectangle(houseX, roofY, houseWidth, blockHeight);
 
@@ -32,10 +32,10 @@ myhouse is house(100,100, roofHeight=10);
 
 #### Case 4
 myhouse is house(100,100,
-	roof is Triangle(roofX-50, roofY, roofHeight, houseWidth+100));
+	roof is Triangle(roofX-50, houseY, roofHeight, houseWidth+100));
 
 #### Case 5
-roof is Triangle(roofX-50, roofY, roofHeight, houseWidth+100);
+roof is Triangle(roofX-50, houseY, roofHeight, houseWidth+100);
 myhouse = house(100,100);
 
 #### Case 6
