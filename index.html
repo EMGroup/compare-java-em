@@ -57,6 +57,7 @@
 			box-sizing: border-box;
 			overflow: auto;
 			box-shadow: 0 0 10px black;
+			background: #f3f0da;
 		}
 
 		#jstextin {
@@ -66,6 +67,7 @@
 			box-sizing: border-box;
 			overflow: auto;
 			box-shadow: 0 0 10px black;
+			background: #f3f0da;
 		}
 
 	</style>
@@ -102,7 +104,8 @@
 
 			try {
 				//console.log(src);
-				ast = {} //JavaParser.parse(src);
+				//ast = {};
+				ast = JavaParser.parse(src);
 				//console.log(ast);
 			} catch(e) {
 				//console.log(e);
@@ -245,6 +248,7 @@
 		<div id="jsmenu"><b>Java</b><br>
 			<select id="jsoptions">
 			<option value="scripts/house/step1.java">House - Naive Class</option>
+			<option value="scripts/house/step2.java">House - Refactored no state</option>
 			</select>
 		</div>
 	</div>
